@@ -1,275 +1,344 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Valentine’s Side Quest</title>
-  <style>
-    body {
-      background-color: #000;
-      color: #00ff9c;
-      font-family: "Courier New", monospace;
-      padding: 40px;
-    }
+<meta charset="UTF-8" />
+<title>Valentine’s Side Quest</title>
+<style>
+  body {
+    margin: 0;
+    background: #0b0f14;
+    color: #c9d1d9;
+    font-family: monospace;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    overflow: hidden;
+  }
 
-    .hidden {
-      display: none;
-    }
+  #container {
+    width: 900px;
+    max-width: 95vw;
+    text-align: center;
+  }
 
-    button {
-      background: none;
-      border: 1px solid #00ff9c;
-      color: #00ff9c;
-      padding: 10px 16px;
-      margin: 10px 0;
-      cursor: pointer;
-      font-family: inherit;
-    }
+  canvas {
+    background: #0e1621;
+    border: 2px solid #1f6feb;
+    display: none;
+    margin: 0 auto;
+  }
 
-    button:hover {
-      background-color: #00ff9c;
-      color: #000;
-    }
+  .hidden {
+    display: none;
+  }
 
-    .section {
-      margin-top: 30px;
-    }
+  button {
+    background: #1f6feb;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    font-size: 16px;
+    cursor: pointer;
+    margin-top: 20px;
+  }
 
-    .riddle {
-      margin-top: 15px;
-      cursor: pointer;
-    }
+  button:hover {
+    background: #388bfd;
+  }
 
-    .reveal {
-      margin-top: 10px;
-      color: #b6ffd9;
-    }
-  </style>
+  #dialogue {
+    min-height: 140px;
+    white-space: pre-wrap;
+  }
+</style>
 </head>
 <body>
 
-  <!-- INTRO -->
-  <div id="intro">
-    <p>> initializing secure connection…</p>
-    <p>> valentine’s side quest loaded</p>
-    <p>> proceed?</p>
-    <button onclick="startQuest()">Y</button>
-  </div>
-
-  <!-- PATH SELECTION -->
-  <div id="paths" class="hidden section">
-    <p>> access granted.</p>
-    <p>> choose your path:</p>
-    
-<button onclick="startGame()">🐾 Begin Side Quest</button><br><br>
-
-    <button onclick="showSection('boss')">🏋️ Boss Fight</button><br>
-    <button onclick="showSection('system')">💻 System Breach</button><br>
-    <button onclick="showSection('endgame')">🎮 Endgame</button>
-  </div>
-  
-<div id="game" class="hidden section">
-  <p>> companion detected</p>
-  <p>> initializing puppy quest…</p>
-  <p id="hearts">❤️❤️❤️</p>
-  <canvas id="gameCanvas" width="600" height="200"
-    style="border:1px solid #00ff9c;"></canvas>
-  <p id="gameMessage"></p>
+<div id="container">
+  <div id="dialogue"></div>
+  <button id="actionBtn" class="hidden">Begin Side Quest</button>
+  <canvas id="game" width="900" height="300"></canvas>
 </div>
 
-  <!-- BOSS FIGHT -->
-  <div id="boss" class="hidden section">
-    <p>> initiating boss fight…</p>
-    <p>> difficulty: intimidating</p>
-    <p>> outcome: impressive</p>
-
-    <div class="riddle" onclick="reveal('bossReveal')">
-      <p><strong>Riddle:</strong><br>
-      What’s built like a final boss<br>
-      and min-maxed every stat on purpose?</p>
-    </div>
-
-    <div id="bossReveal" class="hidden reveal">
-      <p>You.</p>
-      <p>
-        You’re built like a boss fight—<br>
-        strength, discipline, presence.<br><br>
-
-        What stands out to me is how intentional you are.<br>
-        You don’t rely on luck.<br>
-        You put the work in, consistently.<br><br>
-
-        All that muscle,<br>
-        and somehow the sharpest part of you<br>
-        is your mind.
-      </p>
-    </div>
-  </div>
-
-  <!-- SYSTEM BREACH -->
-  <div id="system" class="hidden section">
-    <p>> unauthorized intelligence detected</p>
-    <p>> system integrity compromised (in a good way)</p>
-
-    <div class="riddle" onclick="reveal('systemReveal')">
-      <p><strong>Riddle:</strong><br>
-      What breaks systems<br>
-      and makes me lean closer?</p>
-    </div>
-
-    <div id="systemReveal" class="hidden reveal">
-      <p>You.</p>
-      <p>> cognitive anomaly confirmed</p>
-      <p>
-        I love how your mind works.<br>
-        The way you think, notice patterns, and stay curious.<br><br>
-
-        You’re the kind of smart that doesn’t need to prove itself.<br>
-        Quiet confidence. Precision.<br><br>
-
-        > subtle movement detected behind user…<br>
-        > possible tail activity?
-      </p>
-    </div>
-  </div>
-
-  <!-- ENDGAME -->
-  <div id="endgame" class="hidden section">
-    <p>> endgame unlocked</p>
-    <p>> environment stabilized</p>
-    <p>> lights: low</p>
-
-    <div class="riddle" onclick="reveal('endgameReveal')">
-      <p><strong>Riddle:</strong><br>
-      What feels safest<br>
-      when the world goes quiet?</p>
-    </div>
-
-    <div id="endgameReveal" class="hidden reveal">
-      <p>Sitting with you.</p>
-      <p>
-        Some moments don’t pull you out of yourself.<br>
-        They bring you <em>back</em>.<br><br>
-
-        Lights off.<br>
-        Water running.<br>
-        Music steady enough to breathe to.<br><br>
-
-        Sitting there with you,<br>
-        I didn’t feel strange or out of place.<br>
-        I felt present.<br><br>
-
-        Like I belonged exactly where I was.
-      </p>
-
-      <button onclick="showSection('reward')">Complete Quest</button>
-    </div>
-  </div>
-
-  <!-- REWARD -->
-  <div id="reward" class="hidden section">
-    <p>> quest complete</p>
-    <p>> reward generated</p>
-
-    <button onclick="window.open('PASTE_PLAYLIST_LINK_HERE', '_blank')">
-      🎧 Shared Frequencies
-    </button>
-
-    <p><br>
-      Well done, Mr. Cody.<br>
-      I’m really enjoying this playthrough.
-    </p>
-  </div>
-
-  <script>
-    function startQuest() {
-      document.getElementById("intro").classList.add("hidden");
-      document.getElementById("paths").classList.remove("hidden");
-    }
-
-    function showSection(id) {
-      const sections = ["boss", "system", "endgame", "reward"];
-      sections.forEach(sec => {
-        const el = document.getElementById(sec);
-        if (el) el.classList.add("hidden");
-      });
-      document.getElementById(id).classList.remove("hidden");
-    }
-
-    function reveal(id) {
-      document.getElementById(id).classList.remove("hidden");
-    }
-  </script>
 <script>
-  let canvas, ctx;
-  let puppy = { x: 50, y: 150, vy: 0, onGround: false };
-  let bones = [{ x: 300, y: 160 }, { x: 400, y: 160 }];
-  let hearts = 3;
-  let gravity = 0.6;
-  let keys = {};
+/* =======================
+   TYPEWRITER
+======================= */
+const dialogueBox = document.getElementById("dialogue");
+const actionBtn = document.getElementById("actionBtn");
 
-  function startGame() {
-    showSection("game");
-    canvas = document.getElementById("gameCanvas");
-    ctx = canvas.getContext("2d");
-    document.addEventListener("keydown", e => keys[e.key] = true);
-    document.addEventListener("keyup", e => keys[e.key] = false);
-    requestAnimationFrame(gameLoop);
+function typeText(text, callback) {
+  dialogueBox.innerHTML = "";
+  let i = 0;
+  const interval = setInterval(() => {
+    dialogueBox.innerHTML += text[i];
+    i++;
+    if (i >= text.length) {
+      clearInterval(interval);
+      if (callback) callback();
+    }
+  }, 30);
+}
+
+/* =======================
+   GAME SETUP
+======================= */
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+
+let keys = {};
+let level = 1;
+let gameRunning = false;
+
+const gravity = 0.6;
+const groundHeight = 260;
+
+/* =======================
+   PLAYER (PIXEL PUPPY)
+======================= */
+const player = {
+  x: 100,
+  y: 0,
+  vx: 0,
+  vy: 0,
+  width: 18,
+  height: 14,
+  onGround: false
+};
+
+/* =======================
+   CAMERA
+======================= */
+let cameraX = 0;
+
+/* =======================
+   LEVEL DATA
+======================= */
+const levels = {
+  1: {
+    length: 2400,
+    platforms: [],
+    gaps: [],
+    bones: Array.from({length:5},(_,i)=>({x:400+i*300,y:220,collected:false}))
+  },
+  2: {
+    length: 2800,
+    platforms: [
+      {x:600,y:200,w:80},
+      {x:820,y:170,w:80},
+      {x:1100,y:190,w:80},
+      {x:1500,y:160,w:100}
+    ],
+    gaps: [],
+    bones: Array.from({length:6},(_,i)=>({x:500+i*350,y:150,collected:false}))
+  },
+  3: {
+    length: 3000,
+    platforms: [
+      {x:700,y:180,w:90},
+      {x:1000,y:150,w:90},
+      {x:1400,y:190,w:90},
+      {x:1800,y:140,w:120}
+    ],
+    gaps: [
+      {x:900,w:120},
+      {x:1300,w:160},
+      {x:1700,w:180}
+    ],
+    heart: {x:2600,y:200,size:40}
+  }
+};
+
+/* =======================
+   INPUT
+======================= */
+window.addEventListener("keydown", e => keys[e.key] = true);
+window.addEventListener("keyup", e => keys[e.key] = false);
+
+/* =======================
+   DRAW PUPPY
+======================= */
+function drawPuppy(px, py) {
+  ctx.fillStyle = "#3fb950";
+  ctx.fillRect(px, py, player.width, player.height);
+  ctx.fillRect(px+14, py-4, 6, 6); // ear
+  ctx.fillRect(px-4, py+4, 4, 4); // tail
+}
+
+/* =======================
+   GAME LOOP
+======================= */
+function update() {
+  if (!gameRunning) return;
+
+  // movement
+  if (keys["ArrowRight"]) player.vx = 3;
+  else if (keys["ArrowLeft"]) player.vx = -3;
+  else player.vx *= 0.8;
+
+  if (keys[" "] && player.onGround) {
+    player.vy = -10;
+    player.onGround = false;
   }
 
-  function gameLoop() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  player.vy += gravity;
+  player.x += player.vx;
+  player.y += player.vy;
 
-    // Gravity
-    puppy.vy += gravity;
-    puppy.y += puppy.vy;
+  // ground
+  player.onGround = false;
+  if (player.y + player.height >= groundHeight) {
+    player.y = groundHeight - player.height;
+    player.vy = 0;
+    player.onGround = true;
+  }
 
-    // Ground
-    if (puppy.y > 150) {
-      puppy.y = 150;
-      puppy.vy = 0;
-      puppy.onGround = true;
+  // platforms
+  levels[level].platforms?.forEach(p => {
+    if (
+      player.x + player.width > p.x &&
+      player.x < p.x + p.w &&
+      player.y + player.height > p.y &&
+      player.y + player.height < p.y + 10 &&
+      player.vy >= 0
+    ) {
+      player.y = p.y - player.height;
+      player.vy = 0;
+      player.onGround = true;
     }
+  });
 
-    // Movement
-    if (keys["ArrowRight"]) puppy.x += 2;
-    if (keys["ArrowLeft"]) puppy.x -= 2;
-    if (keys["ArrowUp"] && puppy.onGround) {
-      puppy.vy = -10;
-      puppy.onGround = false;
+  // gaps (level 3)
+  levels[level].gaps?.forEach(g => {
+    if (player.x > g.x && player.x < g.x + g.w && player.y > canvas.height) {
+      player.x = 100;
+      player.y = 0;
+      cameraX = 0;
     }
+  });
 
-    // Draw puppy
-    ctx.fillStyle = "#00ff9c";
-    ctx.fillRect(puppy.x, puppy.y, 20, 20);
+  cameraX = player.x - canvas.width / 2;
 
-    // Draw bones
-    ctx.fillStyle = "#ffffff";
-    bones.forEach((b, i) => {
-      ctx.fillRect(b.x, b.y, 10, 10);
+  draw();
+  requestAnimationFrame(update);
+}
 
-      // Collision
+/* =======================
+   DRAW WORLD
+======================= */
+function draw() {
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.save();
+  ctx.translate(-cameraX,0);
+
+  // ground
+  ctx.fillStyle = "#30363d";
+  ctx.fillRect(0, groundHeight, levels[level].length, 40);
+
+  // platforms
+  ctx.fillStyle = "#6e7681";
+  levels[level].platforms?.forEach(p=>{
+    ctx.fillRect(p.x,p.y,p.w,10);
+  });
+
+  // bones
+  levels[level].bones?.forEach(b=>{
+    if (!b.collected) {
+      ctx.fillStyle = "#f0f6fc";
+      ctx.fillRect(b.x,b.y,10,6);
       if (
-        puppy.x < b.x + 10 &&
-        puppy.x + 20 > b.x &&
-        puppy.y < b.y + 10 &&
-        puppy.y + 20 > b.y
+        player.x < b.x+10 &&
+        player.x+player.width > b.x &&
+        player.y < b.y+6 &&
+        player.y+player.height > b.y
       ) {
-        bones.splice(i, 1);
+        b.collected = true;
+        if (levels[level].bones.every(x=>x.collected)) finishLevel();
       }
-    });
-
-    // Check win
-    if (bones.length === 0) {
-      document.getElementById("gameMessage").innerText =
-        "> level complete";
-      setTimeout(() => {
-        showSection("boss");
-      }, 1000);
-      return;
     }
+  });
 
-    requestAnimationFrame(gameLoop);
+  // heart (level 3)
+  if (level === 3) {
+    const h = levels[3].heart;
+    ctx.fillStyle = "#ff4d6d";
+    ctx.fillRect(h.x,h.y,h.size,h.size);
+    if (
+      player.x < h.x+h.size &&
+      player.x+player.width > h.x &&
+      player.y < h.y+h.size &&
+      player.y+player.height > h.y
+    ) {
+      endGame();
+    }
   }
+
+  drawPuppy(player.x,player.y);
+  ctx.restore();
+}
+
+/* =======================
+   LEVEL TRANSITIONS
+======================= */
+function finishLevel() {
+  gameRunning = false;
+  canvas.style.display = "none";
+
+  if (level === 1) {
+    typeText("BOSS FIGHT UNLOCKED.\nStrength isn’t loud. It’s disciplined.\n\nProceed?", ()=>{
+      actionBtn.textContent = "Next Level";
+      actionBtn.classList.remove("hidden");
+      actionBtn.onclick = ()=>startLevel(2);
+    });
+  } else if (level === 2) {
+    typeText("SYSTEM BREACH.\nYou adapt. You persist.\n\nContinue deeper?", ()=>{
+      actionBtn.textContent = "Final Level";
+      actionBtn.classList.remove("hidden");
+      actionBtn.onclick = ()=>startLevel(3);
+    });
+  }
+}
+
+function startLevel(n) {
+  level = n;
+  player.x = 100;
+  player.y = 0;
+  cameraX = 0;
+  actionBtn.classList.add("hidden");
+  dialogueBox.innerHTML = "";
+  canvas.style.display = "block";
+  gameRunning = true;
+  update();
+}
+
+function endGame() {
+  gameRunning = false;
+  canvas.style.display = "none";
+  typeText(
+    "ENDGAME.\n\nThat moment — quiet, safe, present.\nWhere the world fell away.\n\nYou don’t make me feel strange.\nYou make me feel here.\n\nWell done, Mr. Cody.",
+    ()=>{}
+  );
+}
+
+/* =======================
+   INTRO
+======================= */
+typeText("SYSTEM ONLINE.\n\nPress Y to begin.", ()=>{
+  window.addEventListener("keydown", e=>{
+    if (e.key.toLowerCase()==="y") {
+      actionBtn.classList.remove("hidden");
+    }
+  });
+});
+
+actionBtn.onclick = ()=>{
+  actionBtn.classList.add("hidden");
+  dialogueBox.innerHTML = "";
+  canvas.style.display = "block";
+  gameRunning = true;
+  update();
+};
 </script>
 
 </body>
