@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Side Quest: Valentine’s Edition</title>
+
+  <style>
+    body {
+      background-color: black;
+      color: #00ff9c;
+      font-family: "Courier New", monospace;
+      padding: 40px;
+    }
+
+    .cursor {
+      animation: blink 1s infinite;
+    }
+
+    @keyframes blink {
+      0% { opacity: 1; }
+      50% { opacity: 0; }
+      100% { opacity: 1; }
+    }
+
+    button {
+      background: black;
+      color: #00ff9c;
+      border: 1px solid #00ff9c;
+      padding: 10px 20px;
+      font-family: inherit;
+      cursor: pointer;
+      margin-top: 20px;
+      margin-right: 10px;
+    }
+
+    button:hover {
+      background-color: #00ff9c;
+      color: black;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <p>> booting system...</p>
+  <p>> user detected.</p>
+  <p>> scanning emotional firewall...</p>
+
+  <p><br>ALERT: Unrecognized feelings detected.</p>
+  <p>Proceed?</p>
+
+  <button onclick="startQuest()">Y</button>
+
+  <div id="quest" class="hidden">
+    <p><br>> access granted.</p>
+    <p>> side quest unlocked.</p>
+    <p class="cursor">▮</p>
+  </div>
+
+  <script>
+    function startQuest() {
+      document.getElementById("quest").classList.remove("hidden");
+    }
+  </script>
+
+</body>
+</html>
