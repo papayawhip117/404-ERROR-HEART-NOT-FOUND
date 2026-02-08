@@ -2,388 +2,118 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Valentine’s Side Quest</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Valentine's Side Quest</title>
 <style>
   body {
     margin: 0;
     background: black;
-    color: #ff9ecb;
+    color: #ff66aa;
     font-family: monospace;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
     overflow: hidden;
   }
-  #container {
-    width: 900px;
-    max-width: 95vw;
-    text-align: center;
-  }
-  canvas {
-    display: none;
-    background: #0b0b0b;
-    border: 2px solid #ff9ecb;
-    margin: 0 auto;
-  }
-  button {
-    background: black;
-    color: #ff9ecb;
-    border: 2px solid #ff9ecb;
-    padding: 12px 24px;
-    font-size: 16px;
-    cursor: pointer;
-    margin-top: 20px;
-  }
-  button:hover {
-    background: #ff9ecb;
-    color: black;
-  }
-  #dialogue {
-    min-height: 140px;
+  #terminal {
+    padding: 20px;
     white-space: pre-wrap;
+    font-size: 18px;
   }
-  .hidden { display: none; }
-  #chest {
+  #gameCanvas {
     display: none;
-    width: 64px;
-    height: 64px;
-    margin: 0 auto;
-    cursor: pointer;
-    image-rendering: pixelated;
+    background: black;
+    margin: auto;
+    display: block;
   }
 </style>
 </head>
 <body>
 
-<!-- AUDIO -->
-<audio id="bgMusic" src="8-punk.mp3" loop></audio>
-<audio id="clickSound" src="click.wav"></audio>
-
-<div id="container">
-  <div id="dialogue"></div>
-  <button id="actionBtn" class="hidden">Begin Side Quest</button>
-  <canvas id="game" width="900" height="300"></canvas>
-  <img id="chest" src="pixel-chest.png" alt="Chest">
-</div>
+<div id="terminal"></div>
+<canvas id="gameCanvas" width="800" height="400"></canvas>
 
 <script>
-/* ===== AUDIO ===== */
-const bgMusic = document.getElementById("bgMusic");
-const clickSound = document.getElementById("clickSound");
+const terminal = document.getElementById("terminal");
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
 
-function playClick() {
-  clickSound.currentTime = 0;
-  clickSound.play();
-}
-function startMusic() {
-  if(bgMusic.paused) bgMusic.play();
-}
-document.addEventListener("keydown", startMusic, {once:true});
-document.getElementById("actionBtn").addEventListener("click", startMusic, {once:true});
+let gameStarted = false;
 
-/* ===== TYPEWRITER ===== */
-const dialogueBox = document.getElementById("dialogue");
-const actionBtn = document.getElementById("actionBtn");
-function typeText(text, callback){
-  dialogueBox.innerHTML="";
-  let i=0;
-  const interval=setInterval(()=>{
-    dialogueBox.innerHTML+=text[i];
-    i++;
-    if(i>=text.length){
-      clearInterval(interval);
-      if(callback) callback();
-    }
-  },30);
-}
-
-/* ===== GAME SETUP ===== */
-const canvas=document.getElementById("game");
-const ctx=canvas.getContext("2d");
-let keys={};
-let path=0;
-let gameRunning=false;
-const tileSize=24;
-const cols=30, rows=12;
-
-/* ===== PLAYER (PIXEL PUPPY) ===== */
-const player={x:1,y:1,barkTimer:0};
-
-/* ===== MAZES (3 PATHS) ===== */
-const mazes = [
-  [
-    "##############################",
-    "#     #       #        #     #",
-    "#  B  #   B   #   B    #  B  #",
-    "#     #       #        #     #",
-    "#     ######## ########       #",
-    "#                              #",
-    "#   B          #      B       #",
-    "#      ######      ######     #",
-    "#                              #",
-    "# B       B          B        #",
-    "##############################"
-  ],
-  [
-    "##############################",
-    "#  B       ##   B       ##    #",
-    "#     ####     ####       B   #",
-    "# B      B            B       #",
-    "#######      ######     #######",
-    "#                              #",
-    "#     B       #      B         #",
-    "#   ######      #######        #",
-    "#          B           B       #",
-    "# B        ##    B             #",
-    "##############################"
-  ],
-  [
-    "##############################",
-    "#  B     B       #       B    #",
-    "#       ####      ####        #",
-    "#   B         B       B       #",
-    "#######      ######     #######",
-    "#                              #",
-    "#   B      #          B        #",
-    "#       ######     ####        #",
-    "#  B           B               #",
-    "#       ##        B            #",
-    "##############################"
-  ]
+// Terminal text lines
+const introLines = [
+  "YOU'VE BEEN HACKED BY BUNNY! MUHAHAHA",
+  "!!! SYSTEM COMPROMISED !!!",
+  "!!! UNAUTHORIZED ACCESS DETECTED !!!",
+  "Press Y to continue… if you dare"
 ];
 
-/* ===== COLLECTIBLES & GAME ===== */
-let collectibles=[];
-function setupCollectibles(){
-  collectibles=[];
-  const maze = mazes[path-1];
-  for(let y=0;y<maze.length;y++){
-    for(let x=0;x<maze[y].length;x++){
-      if(maze[y][x]==="B"){
-        collectibles.push({x,y,collected:false});
-      }
-    }
-  }
-}
+let lineIndex = 0;
+let charIndex = 0;
 
-/* ===== INPUT ===== */
-window.addEventListener("keydown", e=>keys[e.key]=true);
-window.addEventListener("keyup", e=>keys[e.key]=false);
-
-/* ===== PUPPY DRAW ===== */
-function drawPuppy(px,py){
-  ctx.save();
-  const screenX=px*tileSize;
-  const screenY=py*tileSize;
-  // Body
-  ctx.fillStyle="#a0522d";
-  ctx.fillRect(screenX,screenY+6,tileSize-6,tileSize-6);
-  // Head
-  ctx.fillRect(screenX+12,screenY,12,12);
-  // Ears
-  ctx.fillRect(screenX+11,screenY-4,4,4);
-  ctx.fillRect(screenX+19,screenY-4,4,4);
-  // Tail
-  let tailOffset=Math.sin(Date.now()/100)*3;
-  ctx.fillRect(screenX-6,screenY+10+tailOffset,6,3);
-  // Eyes
-  ctx.fillStyle="black";
-  ctx.fillRect(screenX+14,screenY+2,2,2);
-  ctx.fillRect(screenX+18,screenY+2,2,2);
-  // Snout/Nose
-  ctx.fillRect(screenX+17,screenY+8,4,3);
-  // Tongue pops
-  if(keys["ArrowUp"] || keys["ArrowDown"] || keys["ArrowLeft"] || keys["ArrowRight"]){
-    ctx.fillStyle="#ff69b4";
-    ctx.fillRect(screenX+17,screenY+11,4,2);
-  }
-  // Bark
-  if(player.barkTimer>0){
-    ctx.fillStyle="#ff69b4";
-    ctx.font="12px monospace";
-    ctx.fillText("woof! ♥",screenX,screenY-6);
-    player.barkTimer--;
-  }
-  ctx.restore();
-}
-
-/* ===== GAME LOOP ===== */
-function update(){
-  if(!gameRunning) return;
-
-  let dx=0,dy=0;
-  if(keys["ArrowUp"]) dy=-1;
-  else if(keys["ArrowDown"]) dy=1;
-  if(keys["ArrowLeft"]) dx=-1;
-  else if(keys["ArrowRight"]) dx=1;
-
-  const newX = player.x + dx;
-  const newY = player.y + dy;
-
-  const maze = mazes[path-1];
-  if(maze[newY] && maze[newY][newX]!=="#"){
-    player.x=newX;
-    player.y=newY;
-  }
-
-  // check collectibles
-  collectibles.forEach(c=>{
-    if(!c.collected && c.x===player.x && c.y===player.y){
-      c.collected=true;
-      player.barkTimer=20;
-    }
-  });
-
-  // check if finished
-  if(collectibles.every(c=>c.collected)){
-    gameRunning=false;
-    canvas.style.display="none";
-    showDialogue();
-  }
-
-  draw();
-  requestAnimationFrame(update);
-}
-
-/* ===== DRAW MAZE ===== */
-function draw(){
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-  const maze = mazes[path-1];
-  for(let y=0;y<maze.length;y++){
-    for(let x=0;x<maze[y].length;x++){
-      const screenX=x*tileSize;
-      const screenY=y*tileSize;
-      if(maze[y][x]==="#"){
-        ctx.fillStyle="#ff9ecb";
-        ctx.fillRect(screenX,screenY,tileSize,tileSize);
-      } else if(maze[y][x]==="B" && !collectibles.find(c=>c.x===x&&c.y===y).collected){
-        ctx.fillStyle="#ffc0cb";
-        ctx.fillRect(screenX+8,screenY+8,8,8);
-      }
-    }
-  }
-  drawPuppy(player.x,player.y);
-}
-
-/* ===== DIALOGUE FOR PATHS ===== */
-const dialogues = [
-`🏋️ BOSS FIGHT — FINAL (Option A locked)
-initiating boss fight…
-difficulty: intimidating
-outcome: impressive
-Riddle:
-What’s built like a final boss
-and min-maxed every stat on purpose?
-Reveal:
-You.
-Long message:
-You’re built like a boss fight—
-strength, discipline, presence.
-What stands out to me is how intentional you are.
-You don’t rely on luck.
-You put the work in, consistently.
-All that muscle,
-and somehow the sharpest part of you
-is your mind.
-Clean. Nerdy. Admiring. Grounded.`,
-
-`💻 SYSTEM BREACH — FINAL (your favorite stays)
-unauthorized intelligence detected
-system integrity compromised (in a good way)
-Riddle:
-What breaks systems
-and makes me lean closer?
-Reveal:
-You.
-Long message:
-I love how your mind works.
-The way you think, notice patterns, and stay curious.
-You’re the kind of smart that doesn’t need to prove itself.
-Quiet confidence. Precision.
-subtle movement detected behind user…
-possible tail activity?`,
-
-`🎮 ENDGAME — FINAL (presence + not-an-alien moment)
-endgame unlocked
-environment stabilized
-lights: low
-Riddle:
-What feels safest
-when the world goes quiet?
-Reveal:
-Sitting with you.
-Long message:
-Some moments don’t pull you out of yourself.
-They bring you back.
-Lights off.
-Water running.
-Music steady enough to breathe to.
-Sitting there with you,
-I didn’t feel strange or out of place.
-I felt present.
-Like I belonged exactly where I was.`
-];
-
-/* ===== SHOW DIALOGUE AFTER MAZE ===== */
-function showDialogue(){
-  typeText(dialogues[path-1],()=>{
-    if(path<3){
-      actionBtn.textContent="Next Path";
-      actionBtn.classList.remove("hidden");
-      actionBtn.onclick=()=>{
-        playClick();
-        startMaze(path+1);
-      };
+// Typewriter effect
+function typeLine() {
+  if(lineIndex < introLines.length){
+    if(charIndex < introLines[lineIndex].length){
+      terminal.textContent += introLines[lineIndex][charIndex];
+      charIndex++;
+      setTimeout(typeLine, 50);
     } else {
-      // ENDGAME FINAL FLOW
-      typeText(dialogues[path-1],()=>{
-        setTimeout(()=>{
-          dialogueBox.innerHTML="";
-          document.body.style.background="black";
-          typeText("Well done, Mr. Cody",()=>{
-            const chest=document.getElementById("chest");
-            chest.style.display="block";
-            chest.onclick=()=>{
-              playClick();
-              chest.style.display="none";
-              typeText("BONUS LOOT UNLOCKED:\nShared Frequencies Detected 🎧");
-            };
-          });
-        },500);
-      });
+      terminal.textContent += "\n";
+      lineIndex++;
+      charIndex = 0;
+      setTimeout(typeLine, 300);
     }
-  });
+  }
 }
 
-/* ===== START MAZE ===== */
-function startMaze(n){
-  path=n;
-  player.x=1; player.y=1;
-  setupCollectibles();
-  actionBtn.classList.add("hidden");
-  dialogueBox.innerHTML="";
-  canvas.style.display="block";
-  gameRunning=true;
-  update();
-}
+// Start the intro
+typeLine();
 
-/* ===== INTRO ===== */
-typeText("SYSTEM ONLINE.\n\nPress Y to begin.",()=>{
-  window.addEventListener("keydown",e=>{
-    if(e.key.toLowerCase()==="y"){
-      playClick();
-      startMusic();
-      actionBtn.classList.remove("hidden");
-    }
-  });
+// Flicker effect for “hacker vibe”
+function flickerTerminal() {
+  if(Math.random() < 0.1){
+    terminal.style.color = "#ff99cc";
+  } else {
+    terminal.style.color = "#ff66aa";
+  }
+  if(!gameStarted) setTimeout(flickerTerminal, 100);
+}
+flickerTerminal();
+
+// Listen for keypress
+document.addEventListener("keydown", (e) => {
+  if(!gameStarted && (e.key === "y" || e.key === "Y")){
+    startGame();
+  }
 });
 
-actionBtn.onclick = ()=>{
-  playClick();
-  startMusic();
-  startMaze(1);
-};
+// Start game placeholder
+function startGame(){
+  gameStarted = true;
+  terminal.style.display = "none";
+  canvas.style.display = "block";
+  drawPlaceholderPuppy();
+}
+
+// Placeholder puppy drawing
+function drawPlaceholderPuppy(){
+  ctx.fillStyle = "brown";
+  ctx.fillRect(50, 300, 40, 30); // body
+  ctx.fillStyle = "darkbrown";
+  ctx.fillRect(50, 280, 40, 20); // head
+  ctx.fillStyle = "pink";
+  ctx.fillRect(65, 295, 10, 5); // tongue
+  // ears
+  ctx.fillStyle = "darkbrown";
+  ctx.fillRect(50, 270, 8, 10);
+  ctx.fillRect(82, 270, 8, 10);
+  // eyes
+  ctx.fillStyle = "black";
+  ctx.fillRect(55, 285, 5, 5);
+  ctx.fillRect(78, 285, 5, 5);
+  // tail (placeholder)
+  ctx.fillStyle = "darkbrown";
+  ctx.fillRect(30, 300, 10, 5);
+}
 </script>
+
 </body>
 </html>
